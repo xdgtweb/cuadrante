@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuadrante de Turnos Automático</title>
+    <style>
+        :root {
+            --color-primario: #007bff; --color-primario-hover: #0056b3;
+            --color-fondo: #f4f4f4; --color-verde: #92d050;
+            --color-rojo: #dc3545; --color-gris-claro: #e9ecef;
+            --radio-borde: 8px; --sombra-caja: 0 0 10px rgba(0,0,0,0.1);
+
+            /* --- NUEVOS COLORES DE TURNOS --- */
+            --color-manana: #a7d8f5; /* Azul celeste claro */
+            --color-tarde: #f7d6b5;  /* Naranja claro */
+            --color-noche: #d1c4e9;  /* Violeta claro */
+            --color-fiesta: #ffffff; /* Blanco */
+        }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--color-fondo); color: #333; margin: 0; padding: 15px; }
+        .container { max-width: 1400px; margin: auto; background: #fff; padding: 20px; border-radius: var(--radio-borde); box-shadow: var(--sombra-caja); }
+        h1, h2 { text-align: center; color: var(--color-primario-hover); margin-top: 0; }
+        .seccion-controles, .seccion-gestion { margin-bottom: 25px; padding: 20px; background-color: var(--color-gris-claro); border-radius: var(--radio-borde); }
+        .controles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end; }
+        .control-grupo { display: flex; flex-direction: column; }
+        .control-grupo label { margin-bottom: 5px; font-weight: bold; }
+        .control-grupo select, .control-grupo input[type="text"], .control-grupo input[type="date"], .control-grupo input[type="number"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .boton { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; font-size: 14px; }
+        .boton-principal { background-color: var(--color-primario); } .boton-principal:hover { background-color: var(--color-primario-hover); }
+        .boton-peligro { background-color: var(--color-rojo); } .boton-peligro:hover { background-color: #c82333; }
+        .boton-secundario { background-color: #6c757d; } .boton-secundario:hover { background-color: #5a6268; }
+        #form-personal { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .fila-formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        #lista-personal { list-style: none; padding: 0; }
+        #lista-personal li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
+        #lista-personal li:nth-child(odd) { background-color: #f9f9f9; }
+        .info-persona { flex-grow: 1; } .info-persona span { display: block; font-size: 0.9em; color: #555; }
+        .acciones-persona { display: flex; gap: 10px; margin-left: 15px; }
+        #cuadrante-container { overflow-x: auto; }
+        .tabla-cuadrante { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px; }
+        .tabla-cuadrante th, .tabla-cuadrante td { border: 1px solid #666; text-align: center; padding: 5px 2px; font-size: 14px; height: 50px; white-space: nowrap; }
+        .header-nombre { background-color: var(--color-verde); font-weight: bold; width: 150px; position: sticky; left: 0; z-index: 1; }
+        .header-dia { background-color: #ffeb3b; font-weight: bold; min-width: 40px; }
+        .turno { font-weight: bold; font-size: 16px; } .horas { display: block; font-size: 12px; }
+        .celda-total-horas { font-weight: bold; background-color: var(--color-gris-claro); min-width: 80px; }
+        
+        /* --- ESTILOS DE TURNOS ACTUALIZADOS --- */
+        .turno-m { background-color: var(--color-manana); }
+        .turno-t { background-color: var(--color-tarde); }
+        .turno-n { background-color: var(--color-noche); }
+        .turno-f { background-color: var(--color-fiesta); }
+
+        #patron-visual { display: block; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 10px; min-height: 20px; font-family: monospace; font-size: 1.1em; letter-spacing: 2px; margin-bottom: 10px;}
+        #ciclo-builder-botones { display: flex; flex-wrap: wrap; gap: 10px; }
+        @media (max-width: 768px) {
+            body { padding: 10px; } .container { padding: 10px; }
+            .header-nombre { width: 120px; } .tabla-cuadrante th, .tabla-cuadrante td { font-size: 12px; }
+            .turno { font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Cuadrante de Turnos Automático</h1>
+
+        <div class="seccion-gestion">
+            <h2>Gestión de Personal</h2>
+            <form id="form-personal">
+                <input type="hidden" id="persona-id">
+                <div class="fila-formulario">
+                    <div class="control-grupo">
+                        <label for="persona-nombre">Nombre</label>
+                        <input type="text" id="persona-nombre" required placeholder="Ej: David García">
+                    </div>
+                    <div class="control-grupo">
+                        <label for="persona-fecha-inicio">Fecha de inicio (primer turno del ciclo)</label>
+                        <input type="date" id="persona-fecha-inicio" required>
+                    </div>
+                </div>
+                <div class="control-grupo">
+                    <label>Crea el Patrón del Ciclo</label>
+                    <div id="patron-visual"></div>
+                    <input type="hidden" id="persona-ciclo-oculto" required>
+                    <div id="ciclo-builder-botones">
+                        <button type="button" class="boton" style="background-color:var(--color-manana); color:black;" data-turno="M">Añadir Mañana (M)</button>
+                        <button type="button" class="boton" style="background-color:var(--color-tarde); color:black;" data-turno="T">Añadir Tarde (T)</button>
+                        <button type="button" class="boton" style="background-color:var(--color-noche); color:black;" data-turno="N">Añadir Noche (N)</button>
+                        <button type="button" class="boton" style="background-color:var(--color-fiesta); color:black; border: 1px solid #ccc;" data-turno="F">Añadir Fiesta (F)</button>
+                        <button type="button" id="btn-delete-last" class="boton boton-secundario">Borrar Último</button>
+                    </div>
+                </div>
+                <button type="submit" class="boton boton-principal" style="padding: 15px;">Guardar Persona</button>
+            </form>
+            <hr style="margin: 30px 0;">
+            <h3>Personal Guardado</h3>
+            <ul id="lista-personal"></ul>
+        </div>
+        
+        <div class="seccion-controles">
+            <h2>Cuadrante</h2>
+            <div class="controles-grid">
+                <div class="control-grupo">
+                    <label for="mes">Mes:</label>
+                    <select id="mes"></select>
+                </div>
+                <div class="control-grupo">
+                    <label for="ano">Año:</label>
+                    <input type="number" id="ano">
+                </div>
+            </div>
+        </div>
+        <div id="cuadrante-container"></div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const selectorMes = document.getElementById('mes');
+        const inputAno = document.getElementById('ano');
+        const cuadranteContainer = document.getElementById('cuadrante-container');
+        const formPersonal = document.getElementById('form-personal');
+        const inputPersonaId = document.getElementById('persona-id');
+        const inputPersonaNombre = document.getElementById('persona-nombre');
+        const inputPersonaFechaInicio = document.getElementById('persona-fecha-inicio');
+        const listaPersonalContainer = document.getElementById('lista-personal');
+        const patronVisual = document.getElementById('patron-visual');
+        const inputCicloOculto = document.getElementById('persona-ciclo-oculto');
+        const cicloBuilderBotones = document.getElementById('ciclo-builder-botones');
+        const btnDeleteLast = document.getElementById('btn-delete-last');
+        
+        let personal = [];
+        let cicloEnConstruccion = [];
+
+        // --- LÓGICA DEL CONSTRUCTOR DE CICLOS ---
+        const actualizarVistaCiclo = () => {
+            patronVisual.textContent = cicloEnConstruccion.join(' ');
+            inputCicloOculto.value = cicloEnConstruccion.join('');
+        };
+
+        cicloBuilderBotones.addEventListener('click', (e) => {
+            if (e.target.dataset.turno) {
+                cicloEnConstruccion.push(e.target.dataset.turno);
+                actualizarVistaCiclo();
+            }
+        });
+
+        btnDeleteLast.addEventListener('click', () => {
+            cicloEnConstruccion.pop();
+            actualizarVistaCiclo();
+        });
+
+        // --- GESTIÓN DE DATOS (LocalStorage) ---
+        const guardarEnLocalStorage = () => {
+            localStorage.setItem('cuadrantePersonal', JSON.stringify(personal));
+            localStorage.setItem('cuadranteMesGuardado', selectorMes.value);
+            localStorage.setItem('cuadranteAnoGuardado', inputAno.value);
+        };
+        const cargarDesdeLocalStorage = () => {
+            const datosGuardados = localStorage.getItem('cuadrantePersonal');
+            personal = datosGuardados ? JSON.parse(datosGuardados) : [];
+        };
+
+        // --- GESTIÓN DE PERSONAL (CRUD) ---
+        const renderizarListaPersonal = () => {
+            listaPersonalContainer.innerHTML = '';
+            if (personal.length === 0) {
+                listaPersonalContainer.innerHTML = '<li>Aún no has añadido a nadie.</li>';
+                return;
+            }
+            personal.forEach(p => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="info-persona">
+                        <strong>${p.nombre}</strong>
+                        <span>Ciclo: ${p.ciclo.join(' ')} | Inicio: ${p.fechaInicio}</span>
+                    </div>
+                    <div class="acciones-persona">
+                        <button class="boton boton-secundario" onclick="iniciarEdicion('${p.id}')">Editar</button>
+                        <button class="boton boton-peligro" onclick="eliminarPersonal('${p.id}')">Eliminar</button>
+                    </div>
+                `;
+                listaPersonalContainer.appendChild(li);
+            });
+        };
+        
+        const resetearFormulario = () => {
+            formPersonal.reset();
+            inputPersonaId.value = '';
+            cicloEnConstruccion = [];
+            actualizarVistaCiclo();
+        };
+
+        formPersonal.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (inputCicloOculto.value.length === 0) {
+                alert('El patrón del ciclo no puede estar vacío.');
+                return;
+            }
+            const id = inputPersonaId.value;
+            const nuevaPersona = {
+                nombre: inputPersonaNombre.value,
+                ciclo: inputCicloOculto.value.split(''),
+                fechaInicio: inputPersonaFechaInicio.value
+            };
+            
+            if (id) {
+                const index = personal.findIndex(p => p.id === id);
+                personal[index] = { ...personal[index], ...nuevaPersona };
+            } else {
+                nuevaPersona.id = Date.now().toString();
+                personal.push(nuevaPersona);
+            }
+            
+            renderizarListaPersonal();
+            resetearFormulario();
+            generarCuadrante(); // Actualiza el cuadrante al instante
+        });
+
+        window.iniciarEdicion = (id) => {
+            const persona = personal.find(p => p.id === id);
+            if (persona) {
+                inputPersonaId.value = persona.id;
+                inputPersonaNombre.value = persona.nombre;
+                inputPersonaFechaInicio.value = persona.fechaInicio;
+                cicloEnConstruccion = [...persona.ciclo];
+                actualizarVistaCiclo();
+                formPersonal.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+
+        window.eliminarPersonal = (id) => {
+            if (confirm('¿Estás seguro de que quieres eliminar a esta persona?')) {
+                personal = personal.filter(p => p.id !== id);
+                renderizarListaPersonal();
+                generarCuadrante(); // Actualiza el cuadrante al instante
+            }
+        };
+
+        // --- LÓGICA DEL CUADRANTE ---
+        const inicializarControlesFecha = () => {
+            const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+            selectorMes.innerHTML = meses.map((mes, index) => `<option value="${index}">${mes}</option>`).join('');
+            
+            const mesGuardado = localStorage.getItem('cuadranteMesGuardado');
+            const anoGuardado = localStorage.getItem('cuadranteAnoGuardado');
+            const fechaActual = new Date();
+
+            selectorMes.value = mesGuardado || fechaActual.getMonth();
+            inputAno.value = anoGuardado || fechaActual.getFullYear();
+        };
+
+        const generarCuadrante = () => {
+            const mes = parseInt(selectorMes.value);
+            const ano = parseInt(inputAno.value);
+            const diasEnMes = new Date(ano, mes + 1, 0).getDate();
+            let tablaHTML = '<table class="tabla-cuadrante"><thead><tr><th class="header-nombre">Personal</th>';
+            for (let dia = 1; dia <= diasEnMes; dia++) {
+                tablaHTML += `<th class="header-dia">${dia}</th>`;
+            }
+            tablaHTML += '<th class="celda-total-horas">Total Horas</th></tr></thead><tbody>';
+            personal.forEach(p => {
+                tablaHTML += `<tr><td class="header-nombre">${p.nombre}</td>`;
+                let horasTrabajadas = 0;
+                const horasPorTurno = 8;
+                const fechaInicioCiclo = new Date(p.fechaInicio);
+                fechaInicioCiclo.setMinutes(fechaInicioCiclo.getMinutes() + fechaInicioCiclo.getTimezoneOffset());
+                const primerDiaDelMes = new Date(ano, mes, 1);
+                const diferenciaMilisegundos = primerDiaDelMes - fechaInicioCiclo;
+                const diferenciaDias = Math.floor(diferenciaMilisegundos / (1000 * 60 * 60 * 24));
+                const indiceInicio = (diferenciaDias % p.ciclo.length + p.ciclo.length) % p.ciclo.length;
+                for (let dia = 0; dia < diasEnMes; dia++) {
+                    const indiceActual = (indiceInicio + dia) % p.ciclo.length;
+                    const turno = p.ciclo[indiceActual].toUpperCase();
+                    let contenidoCelda = '';
+                    if (turno !== 'F' && turno !== 'L' && turno !== ' ') {
+                        contenidoCelda = `<span class="turno">${turno}</span><span class="horas">${horasPorTurno}</span>`;
+                        horasTrabajadas += horasPorTurno;
+                    }
+                    tablaHTML += `<td class="turno-${turno.toLowerCase()}">${contenidoCelda}</td>`;
+                }
+                tablaHTML += `<td class="celda-total-horas">${horasTrabajadas}</td></tr>`;
+            });
+            tablaHTML += '</tbody></table>';
+            cuadranteContainer.innerHTML = personal.length > 0 ? tablaHTML : '<p style="text-align:center;">Añade personal para ver el cuadrante.</p>';
+            guardarEnLocalStorage(); // Guarda todo al generar el cuadrante
+        };
+
+        // --- EVENTOS E INICIALIZACIÓN ---
+        selectorMes.addEventListener('change', generarCuadrante);
+        inputAno.addEventListener('change', generarCuadrante);
+
+        cargarDesdeLocalStorage();
+        inicializarControlesFecha();
+        renderizarListaPersonal();
+        generarCuadrante();
+    });
+    </script>
+</body>
+</html>
