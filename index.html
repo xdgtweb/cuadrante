@@ -3,68 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuadrante de Turnos Automático</title>
+    <title>Cuadrante de Turnos Profesional</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
         :root {
-            --color-primario: #007bff; --color-primario-hover: #0056b3;
-            --color-fondo: #f4f4f4; --color-verde: #92d050;
-            --color-rojo: #dc3545; --color-gris-claro: #e9ecef;
-            --radio-borde: 8px; --sombra-caja: 0 0 10px rgba(0,0,0,0.1);
+            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --color-primario: #3b82f6; --color-primario-hover: #2563eb;
+            --color-fondo: #f8fafc; --color-superficie: #ffffff;
+            --color-borde: #e2e8f0; --color-texto-principal: #0f172a;
+            --color-texto-secundario: #64748b;
+            --sombra-caja: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radio-borde: 0.5rem;
 
-            /* --- NUEVOS COLORES DE TURNOS --- */
-            --color-manana: #a7d8f5; /* Azul celeste claro */
-            --color-tarde: #f7d6b5;  /* Naranja claro */
-            --color-noche: #d1c4e9;  /* Violeta claro */
-            --color-fiesta: #ffffff; /* Blanco */
+            /* Colores de Turnos */
+            --color-manana: #a7d8f5; --color-tarde: #f7d6b5;
+            --color-noche: #d1c4e9;  --color-fiesta: #ffffff;
         }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--color-fondo); color: #333; margin: 0; padding: 15px; }
-        .container { max-width: 1400px; margin: auto; background: #fff; padding: 20px; border-radius: var(--radio-borde); box-shadow: var(--sombra-caja); }
-        h1, h2 { text-align: center; color: var(--color-primario-hover); margin-top: 0; }
-        .seccion-controles, .seccion-gestion { margin-bottom: 25px; padding: 20px; background-color: var(--color-gris-claro); border-radius: var(--radio-borde); }
-        .controles-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end; }
-        .control-grupo { display: flex; flex-direction: column; }
-        .control-grupo label { margin-bottom: 5px; font-weight: bold; }
-        .control-grupo select, .control-grupo input[type="text"], .control-grupo input[type="date"], .control-grupo input[type="number"] { padding: 10px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        .boton { padding: 10px 15px; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-align: center; font-size: 14px; }
-        .boton-principal { background-color: var(--color-primario); } .boton-principal:hover { background-color: var(--color-primario-hover); }
-        .boton-peligro { background-color: var(--color-rojo); } .boton-peligro:hover { background-color: #c82333; }
-        .boton-secundario { background-color: #6c757d; } .boton-secundario:hover { background-color: #5a6268; }
-        #form-personal { display: grid; grid-template-columns: 1fr; gap: 20px; }
-        .fila-formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        #lista-personal { list-style: none; padding: 0; }
-        #lista-personal li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
-        #lista-personal li:nth-child(odd) { background-color: #f9f9f9; }
-        .info-persona { flex-grow: 1; } .info-persona span { display: block; font-size: 0.9em; color: #555; }
-        .acciones-persona { display: flex; gap: 10px; margin-left: 15px; }
-        #cuadrante-container { overflow-x: auto; }
-        .tabla-cuadrante { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 1200px; }
-        .tabla-cuadrante th, .tabla-cuadrante td { border: 1px solid #666; text-align: center; padding: 5px 2px; font-size: 14px; height: 50px; white-space: nowrap; }
-        .header-nombre { background-color: var(--color-verde); font-weight: bold; width: 150px; position: sticky; left: 0; z-index: 1; }
-        .header-dia { background-color: #ffeb3b; font-weight: bold; min-width: 40px; }
-        .turno { font-weight: bold; font-size: 16px; } .horas { display: block; font-size: 12px; }
-        .celda-total-horas { font-weight: bold; background-color: var(--color-gris-claro); min-width: 80px; }
+
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-family); background-color: var(--color-fondo);
+            color: var(--color-texto-principal); margin: 0; padding: 1.5rem;
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container { max-width: 1400px; margin: auto; display: grid; gap: 2rem; }
         
-        /* --- ESTILOS DE TURNOS ACTUALIZADOS --- */
-        .turno-m { background-color: var(--color-manana); }
-        .turno-t { background-color: var(--color-tarde); }
-        .turno-n { background-color: var(--color-noche); }
-        .turno-f { background-color: var(--color-fiesta); }
+        h1, h2 { text-align: center; color: var(--color-texto-principal); margin: 0 0 1rem 0; font-weight: 700; }
+        h1 { font-size: 2.25rem; } h2 { font-size: 1.5rem; }
 
-        #patron-visual { display: block; background: white; border: 1px solid #ccc; border-radius: 4px; padding: 10px; min-height: 20px; font-family: monospace; font-size: 1.1em; letter-spacing: 2px; margin-bottom: 10px;}
-        #ciclo-builder-botones { display: flex; flex-wrap: wrap; gap: 10px; }
-        @media (max-width: 768px) {
-            body { padding: 10px; } .container { padding: 10px; }
-            .header-nombre { width: 120px; } .tabla-cuadrante th, .tabla-cuadrante td { font-size: 12px; }
-            .turno { font-size: 14px; }
+        .seccion {
+            background-color: var(--color-superficie); padding: 2rem;
+            border-radius: var(--radio-borde); box-shadow: var(--sombra-caja);
+            border: 1px solid var(--color-borde);
         }
+
+        .control-grupo { display: flex; flex-direction: column; }
+        .control-grupo label { margin-bottom: 0.5rem; font-weight: 500; color: var(--color-texto-secundario); }
+        .control-grupo select, .control-grupo input[type="text"], .control-grupo input[type="date"], .control-grupo input[type="number"] {
+            padding: 0.75rem 1rem; border: 1px solid var(--color-borde);
+            border-radius: var(--radio-borde); width: 100%; font-family: inherit; font-size: 1rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .control-grupo select:focus, .control-grupo input:focus {
+            outline: none; border-color: var(--color-primario);
+            box-shadow: 0 0 0 3px rgb(59 130 246 / 0.2);
+        }
+
+        .boton {
+            padding: 0.75rem 1.5rem; color: white; border: none;
+            border-radius: var(--radio-borde); cursor: pointer; font-weight: 600;
+            text-align: center; font-size: 1rem; transition: background-color 0.2s, transform 0.1s;
+        }
+        .boton:active { transform: scale(0.98); }
+
+        .boton-principal { background-color: var(--color-primario); } .boton-principal:hover { background-color: var(--color-primario-hover); }
+        .boton-peligro { background-color: #ef4444; } .boton-peligro:hover { background-color: #dc2626; }
+        .boton-secundario { background-color: var(--color-texto-secundario); } .boton-secundario:hover { background-color: #475569; }
+
+        #form-personal { display: grid; gap: 1.5rem; }
+        .fila-formulario { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        
+        #lista-personal { list-style: none; padding: 0; margin-top: 2rem; border-top: 1px solid var(--color-borde); }
+        #lista-personal li {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+            padding: 1rem; border-bottom: 1px solid var(--color-borde);
+        }
+        .info-persona { flex-grow: 1; }
+        .info-persona strong { font-weight: 600; }
+        .info-persona span { display: block; font-size: 0.875rem; color: var(--color-texto-secundario); font-family: monospace; }
+        .acciones-persona { display: flex; gap: 0.5rem; margin-left: 1rem; }
+        .acciones-persona .boton { padding: 0.5rem 1rem; font-size: 0.875rem; }
+
+        #cuadrante-container { overflow-x: auto; border: 1px solid var(--color-borde); border-radius: var(--radio-borde); }
+        .tabla-cuadrante { width: 100%; border-collapse: collapse; min-width: 1200px; }
+        .tabla-cuadrante th, .tabla-cuadrante td { text-align: center; padding: 0.5rem 0.25rem; font-size: 0.875rem; height: 55px; }
+        .tabla-cuadrante thead th {
+            background-color: var(--color-fondo); font-weight: 600;
+            color: var(--color-texto-secundario); position: sticky; top: 0;
+            border-bottom: 2px solid var(--color-borde);
+        }
+        .tabla-cuadrante tbody tr { border-bottom: 1px solid var(--color-borde); cursor: grab; }
+        .tabla-cuadrante tbody tr:last-child { border-bottom: none; }
+        .header-nombre {
+            background-color: var(--color-superficie); font-weight: 600;
+            width: 170px; position: sticky; left: 0; z-index: 1;
+            border-right: 2px solid var(--color-borde);
+        }
+        .turno { font-weight: 600; font-size: 1rem; } .horas { display: block; font-size: 0.75rem; color: var(--color-texto-secundario); }
+        .celda-total-horas { font-weight: 600; background-color: var(--color-fondo); border-left: 2px solid var(--color-borde); }
+        
+        /* Estilos Drag & Drop */
+        .tabla-cuadrante tbody tr.dragging { opacity: 0.5; background: var(--color-primario); cursor: grabbing; }
+        .tabla-cuadrante tbody tr.drag-over { border-top: 3px solid var(--color-primario); }
+
+        /* Estilos de turnos */
+        .turno-m { background-color: var(--color-manana); } .turno-t { background-color: var(--color-tarde); }
+        .turno-n { background-color: var(--color-noche); } .turno-f { background-color: var(--color-fiesta); }
+
+        #patron-visual {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            background: var(--color-fondo); border: 1px solid var(--color-borde);
+            border-radius: var(--radio-borde); padding: 0.75rem; min-height: 50px;
+        }
+        .turno-letra {
+            width: 30px; height: 30px; display: inline-flex;
+            align-items: center; justify-content: center;
+            border-radius: 50%; font-weight: 700; color: var(--color-texto-principal);
+        }
+        
+        #ciclo-builder-botones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Cuadrante de Turnos Automático</h1>
+        <header><h1>Cuadrante de Turnos</h1></header>
 
-        <div class="seccion-gestion">
+        <main class="seccion">
             <h2>Gestión de Personal</h2>
             <form id="form-personal">
                 <input type="hidden" id="persona-id">
@@ -83,34 +141,32 @@
                     <div id="patron-visual"></div>
                     <input type="hidden" id="persona-ciclo-oculto" required>
                     <div id="ciclo-builder-botones">
-                        <button type="button" class="boton" style="background-color:var(--color-manana); color:black;" data-turno="M">Añadir Mañana (M)</button>
-                        <button type="button" class="boton" style="background-color:var(--color-tarde); color:black;" data-turno="T">Añadir Tarde (T)</button>
-                        <button type="button" class="boton" style="background-color:var(--color-noche); color:black;" data-turno="N">Añadir Noche (N)</button>
-                        <button type="button" class="boton" style="background-color:var(--color-fiesta); color:black; border: 1px solid #ccc;" data-turno="F">Añadir Fiesta (F)</button>
+                        <button type="button" class="boton" style="background-color:var(--color-manana); color:black;" data-turno="M">Mañana</button>
+                        <button type="button" class="boton" style="background-color:var(--color-tarde); color:black;" data-turno="T">Tarde</button>
+                        <button type="button" class="boton" style="background-color:var(--color-noche); color:black;" data-turno="N">Noche</button>
+                        <button type="button" class="boton" style="background-color:var(--color-fiesta); color:black; border: 1px solid var(--color-borde);" data-turno="F">Fiesta</button>
                         <button type="button" id="btn-delete-last" class="boton boton-secundario">Borrar Último</button>
                     </div>
                 </div>
-                <button type="submit" class="boton boton-principal" style="padding: 15px;">Guardar Persona</button>
+                <button type="submit" class="boton boton-principal" style="padding: 1rem; font-size: 1.1rem;">Guardar Persona</button>
             </form>
-            <hr style="margin: 30px 0;">
-            <h3>Personal Guardado</h3>
             <ul id="lista-personal"></ul>
-        </div>
+        </main>
         
-        <div class="seccion-controles">
+        <section class="seccion">
             <h2>Cuadrante</h2>
-            <div class="controles-grid">
+            <div class="fila-formulario" style="margin-bottom: 1.5rem;">
                 <div class="control-grupo">
-                    <label for="mes">Mes:</label>
+                    <label for="mes">Mes</label>
                     <select id="mes"></select>
                 </div>
                 <div class="control-grupo">
-                    <label for="ano">Año:</label>
+                    <label for="ano">Año</label>
                     <input type="number" id="ano">
                 </div>
             </div>
-        </div>
-        <div id="cuadrante-container"></div>
+            <div id="cuadrante-container"></div>
+        </section>
     </div>
 
     <script>
@@ -133,7 +189,13 @@
 
         // --- LÓGICA DEL CONSTRUCTOR DE CICLOS ---
         const actualizarVistaCiclo = () => {
-            patronVisual.textContent = cicloEnConstruccion.join(' ');
+            patronVisual.innerHTML = '';
+            cicloEnConstruccion.forEach(turno => {
+                const span = document.createElement('span');
+                span.className = `turno-letra turno-${turno.toLowerCase()}`;
+                span.textContent = turno;
+                patronVisual.appendChild(span);
+            });
             inputCicloOculto.value = cicloEnConstruccion.join('');
         };
 
@@ -163,16 +225,19 @@
         // --- GESTIÓN DE PERSONAL (CRUD) ---
         const renderizarListaPersonal = () => {
             listaPersonalContainer.innerHTML = '';
-            if (personal.length === 0) {
-                listaPersonalContainer.innerHTML = '<li>Aún no has añadido a nadie.</li>';
-                return;
+            if (personal.length > 0) {
+                 const h3 = document.createElement('h3');
+                 h3.textContent = 'Personal Guardado';
+                 h3.style.textAlign = 'center';
+                 h3.style.marginTop = '2rem';
+                 listaPersonalContainer.appendChild(h3);
             }
             personal.forEach(p => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     <div class="info-persona">
                         <strong>${p.nombre}</strong>
-                        <span>Ciclo: ${p.ciclo.join(' ')} | Inicio: ${p.fechaInicio}</span>
+                        <span>${p.ciclo.join(' ')}</span>
                     </div>
                     <div class="acciones-persona">
                         <button class="boton boton-secundario" onclick="iniciarEdicion('${p.id}')">Editar</button>
@@ -213,7 +278,7 @@
             
             renderizarListaPersonal();
             resetearFormulario();
-            generarCuadrante(); // Actualiza el cuadrante al instante
+            generarCuadrante();
         });
 
         window.iniciarEdicion = (id) => {
@@ -232,7 +297,7 @@
             if (confirm('¿Estás seguro de que quieres eliminar a esta persona?')) {
                 personal = personal.filter(p => p.id !== id);
                 renderizarListaPersonal();
-                generarCuadrante(); // Actualiza el cuadrante al instante
+                generarCuadrante();
             }
         };
 
@@ -255,11 +320,12 @@
             const diasEnMes = new Date(ano, mes + 1, 0).getDate();
             let tablaHTML = '<table class="tabla-cuadrante"><thead><tr><th class="header-nombre">Personal</th>';
             for (let dia = 1; dia <= diasEnMes; dia++) {
-                tablaHTML += `<th class="header-dia">${dia}</th>`;
+                tablaHTML += `<th>${dia}</th>`;
             }
-            tablaHTML += '<th class="celda-total-horas">Total Horas</th></tr></thead><tbody>';
+            tablaHTML += '<th class="celda-total-horas">Total</th></tr></thead><tbody>';
+            
             personal.forEach(p => {
-                tablaHTML += `<tr><td class="header-nombre">${p.nombre}</td>`;
+                tablaHTML += `<tr draggable="true" data-id="${p.id}"><td class="header-nombre">${p.nombre}</td>`;
                 let horasTrabajadas = 0;
                 const horasPorTurno = 8;
                 const fechaInicioCiclo = new Date(p.fechaInicio);
@@ -268,22 +334,88 @@
                 const diferenciaMilisegundos = primerDiaDelMes - fechaInicioCiclo;
                 const diferenciaDias = Math.floor(diferenciaMilisegundos / (1000 * 60 * 60 * 24));
                 const indiceInicio = (diferenciaDias % p.ciclo.length + p.ciclo.length) % p.ciclo.length;
+                
                 for (let dia = 0; dia < diasEnMes; dia++) {
                     const indiceActual = (indiceInicio + dia) % p.ciclo.length;
                     const turno = p.ciclo[indiceActual].toUpperCase();
                     let contenidoCelda = '';
                     if (turno !== 'F' && turno !== 'L' && turno !== ' ') {
-                        contenidoCelda = `<span class="turno">${turno}</span><span class="horas">${horasPorTurno}</span>`;
+                        contenidoCelda = `<span class="turno">${turno}</span><span class="horas">${horasPorTurno}h</span>`;
                         horasTrabajadas += horasPorTurno;
                     }
                     tablaHTML += `<td class="turno-${turno.toLowerCase()}">${contenidoCelda}</td>`;
                 }
                 tablaHTML += `<td class="celda-total-horas">${horasTrabajadas}</td></tr>`;
             });
+            
             tablaHTML += '</tbody></table>';
-            cuadranteContainer.innerHTML = personal.length > 0 ? tablaHTML : '<p style="text-align:center;">Añade personal para ver el cuadrante.</p>';
-            guardarEnLocalStorage(); // Guarda todo al generar el cuadrante
+            cuadranteContainer.innerHTML = personal.length > 0 ? tablaHTML : '<p style="text-align:center; color: var(--color-texto-secundario);">Añade personal para ver el cuadrante.</p>';
+            
+            setupDragAndDrop();
+            guardarEnLocalStorage();
         };
+
+        // --- LÓGICA DE DRAG AND DROP ---
+        function setupDragAndDrop() {
+            const tbody = document.querySelector('.tabla-cuadrante tbody');
+            if (!tbody) return;
+
+            let draggedElement = null;
+
+            tbody.addEventListener('dragstart', e => {
+                draggedElement = e.target;
+                e.dataTransfer.setData('text/plain', draggedElement.dataset.id);
+                setTimeout(() => {
+                    draggedElement.classList.add('dragging');
+                }, 0);
+            });
+
+            tbody.addEventListener('dragend', e => {
+                draggedElement.classList.remove('dragging');
+                draggedElement = null;
+            });
+            
+            tbody.addEventListener('dragover', e => {
+                e.preventDefault();
+                const target = e.target.closest('tr');
+                if (target && target !== draggedElement) {
+                    const allRows = [...tbody.querySelectorAll('tr')];
+                    allRows.forEach(row => row.classList.remove('drag-over'));
+                    target.classList.add('drag-over');
+                }
+            });
+
+            tbody.addEventListener('dragleave', e => {
+                 const target = e.target.closest('tr');
+                 if(target) {
+                    target.classList.remove('drag-over');
+                 }
+            });
+
+            tbody.addEventListener('drop', e => {
+                e.preventDefault();
+                const targetRow = e.target.closest('tr');
+                if (!targetRow || !draggedElement) return;
+
+                targetRow.classList.remove('drag-over');
+
+                const draggedId = draggedElement.dataset.id;
+                const targetId = targetRow.dataset.id;
+                
+                if (draggedId === targetId) return;
+
+                const draggedIndex = personal.findIndex(p => p.id === draggedId);
+                let targetIndex = personal.findIndex(p => p.id === targetId);
+
+                // Reorder the array
+                const [draggedItem] = personal.splice(draggedIndex, 1);
+                personal.splice(targetIndex, 0, draggedItem);
+                
+                // Re-render
+                generarCuadrante();
+                renderizarListaPersonal();
+            });
+        }
 
         // --- EVENTOS E INICIALIZACIÓN ---
         selectorMes.addEventListener('change', generarCuadrante);
