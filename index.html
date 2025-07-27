@@ -16,9 +16,8 @@
             /* Colores Fieles a la Imagen */
             --color-header-dia: #ffff00; /* Amarillo */
             --color-header-nombre: #92d050; /* Verde */
-            --color-noche: #7030a0;      /* Morado */
-            --color-fiesta: #ffff00;    /* Amarillo */
-            --color-manana-tarde: #ffffff; /* Blanco */
+            --color-finde: #ffff00; /* Amarillo para fines de semana */
+            --color-defecto: #ffffff; /* Blanco para días de semana */
         }
 
         *, *::before, *::after { box-sizing: border-box; }
@@ -39,9 +38,7 @@
         }
         
         h1, h2, h3 { text-align: center; color: var(--color-texto-principal); margin: 0 0 1rem 0; font-weight: bold; }
-        h1 { font-size: 2rem; }
-        h2 { font-size: 1.5rem; }
-        h3 { font-size: 1.25rem; }
+        h1 { font-size: 2rem; } h2 { font-size: 1.5rem; } h3 { font-size: 1.25rem; }
 
         .seccion {
             background-color: var(--color-superficie);
@@ -89,7 +86,7 @@
         .tabla-cuadrante th, .tabla-cuadrante td { border: 1px solid var(--color-borde-tabla); text-align: center; padding: 0.25rem; font-size: 1rem; height: 50px; vertical-align: middle; }
         
         .tabla-cuadrante thead th { font-weight: bold; background-color: var(--color-header-dia); }
-        .tabla-cuadrante tbody tr { cursor: grab; }
+        .tabla-cuadrante tbody tr { cursor: grab; background-color: var(--color-defecto); }
         .header-nombre { background-color: var(--color-header-nombre); font-weight: bold; width: 150px; }
         
         .turno { font-weight: bold; font-size: 1.1rem; display: block; }
@@ -98,13 +95,11 @@
         
         .tabla-cuadrante tbody tr.dragging { opacity: 0.6; cursor: grabbing; }
 
-        .turno-m { background-color: var(--color-manana-tarde); }
-        .turno-t { background-color: var(--color-manana-tarde); }
-        .turno-n { background-color: var(--color-noche); color: white; }
-        .turno-f { background-color: var(--color-fiesta); }
+        /* Celda de fin de semana */
+        .finde { background-color: var(--color-finde); }
 
         #patron-visual { display: flex; flex-wrap: wrap; gap: 0.5rem; background: #f0f0f0; border: 1px solid #999; padding: 0.5rem; min-height: 40px; }
-        .turno-letra { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: var(--color-texto-principal); border: 1px solid #ccc; }
+        .turno-letra { width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; color: var(--color-texto-principal); border: 1px solid #ccc; background-color: white; }
         #ciclo-builder-botones { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
     </style>
 </head>
@@ -134,8 +129,8 @@
                     <div id="ciclo-builder-botones">
                         <button type="button" class="boton" style="background-color:#fff; color:black;" data-turno="M">Mañana</button>
                         <button type="button" class="boton" style="background-color:#fff; color:black;" data-turno="T">Tarde</button>
-                        <button type="button" class="boton" style="background-color:var(--color-noche); color:white;" data-turno="N">Noche</button>
-                        <button type="button" class="boton" style="background-color:var(--color-fiesta); color:black;" data-turno="F">Fiesta</button>
+                        <button type="button" class="boton" style="background-color:#fff; color:black;" data-turno="N">Noche</button>
+                        <button type="button" class="boton" style="background-color:#fff; color:black;" data-turno="F">Fiesta</button>
                         <button type="button" id="btn-delete-last" class="boton boton-secundario">Borrar Último</button>
                     </div>
                 </div>
@@ -189,15 +184,9 @@
         const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
         const actualizarVista = () => {
-            if (vistaActual === 'mes') {
-                btnVistaMes.classList.add('activo');
-                btnVistaAno.classList.remove('activo');
-                selectorMesGrupo.style.display = 'block';
-            } else {
-                btnVistaAno.classList.add('activo');
-                btnVistaMes.classList.remove('activo');
-                selectorMesGrupo.style.display = 'none';
-            }
+            selectorMesGrupo.style.display = vistaActual === 'mes' ? 'block' : 'none';
+            btnVistaMes.classList.toggle('activo', vistaActual === 'mes');
+            btnVistaAno.classList.toggle('activo', vistaActual === 'ano');
             generarCuadrante();
         };
 
@@ -208,7 +197,7 @@
             patronVisual.innerHTML = '';
             cicloEnConstruccion.forEach(turno => {
                 const span = document.createElement('span');
-                span.className = `turno-letra turno-${turno.toLowerCase()}`;
+                span.className = 'turno-letra';
                 span.textContent = turno;
                 patronVisual.appendChild(span);
             });
@@ -305,6 +294,10 @@
                 const diferenciaDias = Math.floor((primerDiaDelMes - fechaInicioCiclo) / (1000 * 60 * 60 * 24));
                 const indiceInicio = (diferenciaDias % p.ciclo.length + p.ciclo.length) % p.ciclo.length;
                 for (let dia = 1; dia <= diasEnMes; dia++) {
+                    const fechaDelDia = new Date(ano, mes, dia);
+                    const diaDeLaSemana = fechaDelDia.getDay(); // 0=Domingo, 6=Sábado
+                    const esFinde = diaDeLaSemana === 0 || diaDeLaSemana === 6;
+
                     const indiceActual = (indiceInicio + dia - 1) % p.ciclo.length;
                     const turno = p.ciclo[indiceActual].toUpperCase();
                     let contenidoCelda = '';
@@ -312,7 +305,8 @@
                         contenidoCelda = `<span class="turno">${turno}</span><span class="horas">${horasPorTurno}</span>`;
                         horasTrabajadas += horasPorTurno;
                     }
-                    tablaHTML += `<td class="turno-${turno.toLowerCase()}">${contenidoCelda}</td>`;
+                    const claseFinde = esFinde ? 'finde' : '';
+                    tablaHTML += `<td class="${claseFinde}">${contenidoCelda}</td>`;
                 }
                 tablaHTML += `<td class="celda-total-horas">${horasTrabajadas}</td></tr>`;
             });
